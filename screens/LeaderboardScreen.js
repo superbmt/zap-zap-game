@@ -2,10 +2,10 @@ import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, ScrollView }
 import { useState, useEffect } from 'react';
 import { ProfileManager } from '../utils/profileManager';
 
-export default function LeaderboardScreen({ onBack }) {
+export default function LeaderboardScreen({ onBack, initialSettings }) {
   const [nestedLeaderboards, setNestedLeaderboards] = useState({});
-  const [selectedDifficulty, setSelectedDifficulty] = useState('easy');
-  const [selectedTimeLimit, setSelectedTimeLimit] = useState(30);
+  const [selectedDifficulty, setSelectedDifficulty] = useState(initialSettings?.difficulty || 'easy');
+  const [selectedTimeLimit, setSelectedTimeLimit] = useState(initialSettings?.timeLimit || 30);
   const [currentProfile, setCurrentProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 

@@ -21,6 +21,7 @@ export default function App() {
     difficulty: 'easy'
   });
   const [gameResults, setGameResults] = useState(null);
+  const [leaderboardSettings, setLeaderboardSettings] = useState(null);
   const [loading, setLoading] = useState(true);
   const [welcomeVisible, setWelcomeVisible] = useState(false);
 
@@ -54,7 +55,8 @@ export default function App() {
     setCurrentScreen('profileSelection');
   };
 
-  const handleViewLeaderboard = () => {
+  const handleViewLeaderboard = (settings = null) => {
+    setLeaderboardSettings(settings);
     setCurrentScreen('leaderboard');
   };
 
@@ -178,7 +180,10 @@ export default function App() {
         currentProfile={currentProfile}
         onPlayAgain={handlePlayAgain}
         onBackToHome={handleBackToHome}
-        onViewLeaderboard={handleViewLeaderboard}
+        onViewLeaderboard={() => handleViewLeaderboard({
+          difficulty: gameResults.difficulty,
+          timeLimit: gameResults.timeLimit
+        })}
       />
     );
   }
@@ -187,6 +192,7 @@ export default function App() {
     return (
       <LeaderboardScreen 
         onBack={handleBackToHome}
+        initialSettings={leaderboardSettings}
       />
     );
   }
