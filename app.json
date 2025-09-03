@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "Zap Zap Math Game",
-    "slug": "zap-zap-math",
+    "name": "Zap Zap",
+    "slug": "MyFirstApp",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/zap-zap-icon-square-nobg.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
@@ -19,7 +19,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/zap-zap-icon-square-nobg.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -28,7 +28,7 @@
     },
     "web": {
       "favicon": "./assets/favicon.png",
-      "name": "Zap Zap Math Game",
+      "name": "Zap Zap",
       "shortName": "Zap Zap",
       "lang": "en",
       "scope": "/",

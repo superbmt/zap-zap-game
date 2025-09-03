@@ -199,7 +199,7 @@ export default function App() {
           {/* Zap Zap Logo */}
           <View style={styles.logoContainer}>
             <Image 
-              source={require('./assets/zap-zap-logo.png')} 
+              source={require('./assets/zap-zap-icon-square-nobg.png')} 
               style={styles.logo}
               resizeMode="contain"
             />

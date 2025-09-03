@@ -214,7 +214,7 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
       setTimeout(() => {
         textInputRef.current?.focus();
       }, 100);
-    }, 1000);
+    }, 500);
   };
 
   const handleQuit = () => {
@@ -267,19 +267,19 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
           </View>
         </View>
 
-        {/* Question Display */}
+        {/* Question Display with Overlay Feedback */}
         <View style={styles.questionContainer}>
           <Text style={styles.questionText}>
             {currentQuestion?.question || 'Loading...'}
           </Text>
+          
+          {/* Feedback Overlay - Fixed Position */}
+          {feedback ? (
+            <View style={styles.feedbackOverlay}>
+              <Text style={styles.feedbackText}>{feedback}</Text>
+            </View>
+          ) : null}
         </View>
-
-        {/* Feedback */}
-        {feedback ? (
-          <View style={styles.feedbackContainer}>
-            <Text style={styles.feedbackText}>{feedback}</Text>
-          </View>
-        ) : null}
 
         {/* Answer Input */}
         <View style={styles.answerContainer}>
@@ -378,10 +378,10 @@ const styles = StyleSheet.create({
   },
   questionContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    padding: 40,
+    padding: 30,
     borderRadius: 25,
-    marginTop: 20,
-    marginBottom: 40,
+    marginTop: 10,
+    marginBottom: 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -390,6 +390,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 12,
+    position: 'relative',
   },
   questionText: {
     fontSize: 36,
@@ -397,12 +398,17 @@ const styles = StyleSheet.create({
     color: '#333',
     textAlign: 'center',
   },
-  feedbackContainer: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    padding: 20,
-    borderRadius: 15,
-    marginBottom: 20,
-    alignSelf: 'center',
+  feedbackOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 10,
   },
   feedbackText: {
     fontSize: 20,
@@ -412,8 +418,8 @@ const styles = StyleSheet.create({
   },
   answerContainer: {
     alignItems: 'center',
-    marginTop: 20,
-    marginBottom: 40,
+    marginTop: 10,
+    marginBottom: 20,
   },
   answerInput: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
