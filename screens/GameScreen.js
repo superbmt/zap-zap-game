@@ -152,14 +152,24 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
   }, [isGameActive, timeLeft]);
 
   // Ensure TextInput stays focused for better Android experience
+  // Enhanced focus management for mobile Safari
   useEffect(() => {
     if (isGameActive && !feedback && textInputRef.current) {
       const focusTimer = setTimeout(() => {
-        textInputRef.current?.focus();
+        if (textInputRef.current) {
+          textInputRef.current.focus();
+          // Additional mobile Safari focus techniques
+          if (Platform.OS === 'web') {
+            // Trigger click event to ensure keyboard shows on Safari
+            textInputRef.current.click?.();
+            // Force selection to maintain keyboard
+            textInputRef.current.setSelectionRange?.(0, userAnswer.length);
+          }
+        }
       }, 100);
       return () => clearTimeout(focusTimer);
     }
-  }, [currentQuestion, feedback, isGameActive]);
+  }, [currentQuestion, feedback, isGameActive, userAnswer]);
 
   const endGame = () => {
     setIsGameActive(false);
@@ -209,15 +219,33 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
       setFeedback(`❌ Wrong! Answer: ${currentQuestion.answer}`);
     }
     
-    // Show feedback briefly then generate new question
+    // Generate new question immediately to maintain flow
+    const newQuestion = generateQuestion();
+    
+    // Show feedback briefly then continue
     setTimeout(() => {
       setFeedback('');
-      setUserAnswer('');
-      setCurrentQuestion(generateQuestion());
-      // Refocus the input to keep keyboard persistent on Android
-      setTimeout(() => {
-        textInputRef.current?.focus();
-      }, 100);
+      setCurrentQuestion(newQuestion);
+      
+      // For mobile Safari - select all text instead of clearing to maintain focus
+      if (Platform.OS === 'web') {
+        // Clear and immediately refocus for web
+        setUserAnswer('');
+        // Use requestAnimationFrame for better timing on web
+        requestAnimationFrame(() => {
+          if (textInputRef.current) {
+            textInputRef.current.focus();
+            // Ensure keyboard stays up on mobile Safari
+            textInputRef.current.click?.();
+          }
+        });
+      } else {
+        // For native apps, clear and refocus
+        setUserAnswer('');
+        setTimeout(() => {
+          textInputRef.current?.focus();
+        }, 50);
+      }
     }, 500);
   };
 
@@ -303,6 +331,27 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
             selectTextOnFocus={true}
             blurOnSubmit={false}
             returnKeyType="done"
+            // Additional mobile Safari optimizations
+            autoComplete="off"
+            autoCorrect={false}
+            spellCheck={false}
+            // Prevent zoom on focus for mobile Safari
+            fontSize={isSmallScreen ? 24 : 28}
+            // Additional web-specific props
+            {...(Platform.OS === 'web' && {
+              // Prevent Safari from dismissing keyboard
+              enterKeyHint: 'done',
+              // Keep focus during feedback
+              onBlur: (e) => {
+                if (feedback) {
+                  // Prevent blur during feedback period
+                  e.preventDefault();
+                  setTimeout(() => {
+                    textInputRef.current?.focus();
+                  }, 100);
+                }
+              }
+            })}
           />
           
           <TouchableOpacity 
@@ -427,7 +476,6 @@ const styles = StyleSheet.create({
   },
   answerInput: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    fontSize: isSmallScreen ? 24 : 28,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',

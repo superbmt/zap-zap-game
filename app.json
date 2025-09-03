@@ -37,7 +37,10 @@
       "display": "standalone",
       "orientation": "portrait",
       "startUrl": "/",
-      "preferRelatedApplications": false
+      "preferRelatedApplications": false,
+      "meta": {
+        "viewport": "width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+      }
     },
     "extra": {
       "eas": {
