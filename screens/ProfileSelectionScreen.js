@@ -1,6 +1,10 @@
-import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, ScrollView, Dimensions } from 'react-native';
 import { useState, useEffect } from 'react';
 import { ProfileManager } from '../utils/profileManager';
+
+// Get screen dimensions for responsive design
+const { width, height } = Dimensions.get('window');
+const isSmallScreen = height < 700; // iPhone SE and similar small devices
 
 export default function ProfileSelectionScreen({ onProfileSelected, onCreateNew, onBack }) {
   const [profiles, setProfiles] = useState([]);
@@ -182,9 +186,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   content: {
-    padding: 20,
-    paddingTop: 50,
-    paddingBottom: 40,
+    padding: isSmallScreen ? 15 : 20,
+    paddingTop: isSmallScreen ? 30 : 50,
+    paddingBottom: isSmallScreen ? 30 : 40,
   },
   loadingContainer: {
     flex: 1,
@@ -192,7 +196,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    fontSize: 24,
+    fontSize: isSmallScreen ? 20 : 24,
     fontWeight: 'bold',
     color: 'white',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
@@ -200,21 +204,21 @@ const styles = StyleSheet.create({
     textShadowRadius: 4,
   },
   title: {
-    fontSize: 32,
+    fontSize: isSmallScreen ? 24 : 32,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: isSmallScreen ? 25 : 40,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 4,
   },
   noProfilesContainer: {
     alignItems: 'center',
-    marginVertical: 60,
+    marginVertical: isSmallScreen ? 40 : 60,
   },
   noProfilesText: {
-    fontSize: 24,
+    fontSize: isSmallScreen ? 20 : 24,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
@@ -224,7 +228,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   noProfilesSubtext: {
-    fontSize: 16,
+    fontSize: isSmallScreen ? 14 : 16,
     color: 'rgba(255, 255, 255, 0.8)',
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -232,12 +236,12 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   profilesContainer: {
-    gap: 15,
-    marginBottom: 30,
+    gap: isSmallScreen ? 12 : 15,
+    marginBottom: isSmallScreen ? 20 : 30,
   },
   profileCard: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    padding: 20,
+    padding: isSmallScreen ? 15 : 20,
     borderRadius: 20,
     shadowColor: '#000',
     shadowOffset: {
@@ -258,29 +262,29 @@ const styles = StyleSheet.create({
   profileHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 15,
+    marginBottom: isSmallScreen ? 12 : 15,
   },
   avatarContainer: {
     position: 'relative',
-    marginRight: 15,
+    marginRight: isSmallScreen ? 12 : 15,
   },
   avatarEmoji: {
-    fontSize: 50,
-    width: 70,
-    height: 70,
+    fontSize: isSmallScreen ? 40 : 50,
+    width: isSmallScreen ? 60 : 70,
+    height: isSmallScreen ? 60 : 70,
     textAlign: 'center',
     textAlignVertical: 'center',
     backgroundColor: 'rgba(255, 107, 157, 0.1)',
-    borderRadius: 35,
-    lineHeight: 70,
+    borderRadius: isSmallScreen ? 30 : 35,
+    lineHeight: isSmallScreen ? 60 : 70,
   },
   currentBadge: {
     position: 'absolute',
     top: -5,
     right: -5,
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+    width: isSmallScreen ? 20 : 24,
+    height: isSmallScreen ? 20 : 24,
+    borderRadius: isSmallScreen ? 10 : 12,
     backgroundColor: '#4CAF50',
     justifyContent: 'center',
     alignItems: 'center',
@@ -289,20 +293,20 @@ const styles = StyleSheet.create({
   },
   currentBadgeText: {
     color: 'white',
-    fontSize: 12,
+    fontSize: isSmallScreen ? 10 : 12,
     fontWeight: 'bold',
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
-    fontSize: 24,
+    fontSize: isSmallScreen ? 20 : 24,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 5,
   },
   profileSubtitle: {
-    fontSize: 16,
+    fontSize: isSmallScreen ? 14 : 16,
     color: '#666',
     fontStyle: 'italic',
   },
@@ -311,7 +315,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-around',
     borderTopWidth: 1,
     borderTopColor: 'rgba(0, 0, 0, 0.1)',
-    paddingTop: 15,
+    paddingTop: isSmallScreen ? 12 : 15,
   },
   statItem: {
     alignItems: 'center',
@@ -342,20 +346,20 @@ const styles = StyleSheet.create({
   },
   createNewButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    padding: 20,
+    padding: isSmallScreen ? 15 : 20,
     borderRadius: 20,
     alignItems: 'center',
-    marginBottom: 30,
+    marginBottom: isSmallScreen ? 20 : 30,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.3)',
     borderStyle: 'dashed',
   },
   createNewEmoji: {
-    fontSize: 40,
-    marginBottom: 10,
+    fontSize: isSmallScreen ? 32 : 40,
+    marginBottom: isSmallScreen ? 8 : 10,
   },
   createNewText: {
-    fontSize: 18,
+    fontSize: isSmallScreen ? 16 : 18,
     fontWeight: 'bold',
     color: '#333',
   },
@@ -366,7 +370,7 @@ const styles = StyleSheet.create({
   backButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
     paddingHorizontal: 5,
-    paddingVertical: 15,
+    paddingVertical: isSmallScreen ? 12 : 15,
     borderRadius: 30,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.3)',
@@ -376,7 +380,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButtonText: {
-    fontSize: 16,
+    fontSize: isSmallScreen ? 14 : 16,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
@@ -384,7 +388,7 @@ const styles = StyleSheet.create({
   continueButton: {
     backgroundColor: '#FF6B9D',
     paddingHorizontal: 10,
-    paddingVertical: 15,
+    paddingVertical: isSmallScreen ? 12 : 15,
     borderRadius: 30,
     borderWidth: 2,
     borderColor: '#FF1493',
@@ -401,7 +405,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   continueButtonText: {
-    fontSize: 14,
+    fontSize: isSmallScreen ? 12 : 14,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',

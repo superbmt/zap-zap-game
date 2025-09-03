@@ -1,5 +1,5 @@
 import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View, Image, TouchableOpacity, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, Image, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
 import { useState, useEffect } from 'react';
 import ProfileSelectionScreen from './screens/ProfileSelectionScreen';
 import ProfileCreationScreen from './screens/ProfileCreationScreen';
@@ -8,6 +8,10 @@ import GameScreen from './screens/GameScreen';
 import ResultsScreen from './screens/ResultsScreen';
 import LeaderboardScreen from './screens/LeaderboardScreen';
 import { ProfileManager } from './utils/profileManager';
+
+// Get screen dimensions for responsive design
+const { width, height } = Dimensions.get('window');
+const isSmallScreen = height < 700; // iPhone SE and similar small devices
 
 export default function App() {
   const [currentScreen, setCurrentScreen] = useState('home');
@@ -246,26 +250,26 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: 30,
-    paddingTop: 50,
-    paddingBottom: 50,
+    paddingHorizontal: isSmallScreen ? 20 : 30,
+    paddingTop: isSmallScreen ? 30 : 50,
+    paddingBottom: isSmallScreen ? 30 : 50,
   },
   logoContainer: {
-    marginBottom: 60,
+    marginBottom: isSmallScreen ? 40 : 60,
     alignItems: 'center',
   },
   logo: {
-    width: 320,
-    height: 320,
+    width: isSmallScreen ? 220 : 320,
+    height: isSmallScreen ? 220 : 320,
   },
   gameButtonsContainer: {
     alignItems: 'center',
-    gap: 20,
+    gap: isSmallScreen ? 15 : 20,
   },
   button: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    paddingHorizontal: 60,
-    paddingVertical: 20,
+    paddingHorizontal: isSmallScreen ? 40 : 60,
+    paddingVertical: isSmallScreen ? 15 : 20,
     borderRadius: 35,
     borderWidth: 2,
     borderColor: 'rgba(255, 255, 255, 0.3)',
@@ -279,7 +283,7 @@ const styles = StyleSheet.create({
     elevation: 12,
   },
   buttonText: {
-    fontSize: 22,
+    fontSize: isSmallScreen ? 18 : 22,
     fontWeight: '700',
     color: '#333',
     textAlign: 'center',
@@ -287,8 +291,8 @@ const styles = StyleSheet.create({
   },
   leaderboardButton: {
     backgroundColor: '#FFD700',
-    paddingHorizontal: 40,
-    paddingVertical: 15,
+    paddingHorizontal: isSmallScreen ? 30 : 40,
+    paddingVertical: isSmallScreen ? 12 : 15,
     borderRadius: 30,
     borderWidth: 2,
     borderColor: '#FFA500',
@@ -302,7 +306,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   leaderboardButtonText: {
-    fontSize: 18,
+    fontSize: isSmallScreen ? 16 : 18,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',

@@ -1,5 +1,9 @@
-import { StyleSheet, Text, View, TouchableOpacity, ImageBackground } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, Dimensions } from 'react-native';
 import { useState } from 'react';
+
+// Get screen dimensions for responsive design
+const { width, height } = Dimensions.get('window');
+const isSmallScreen = height < 700; // iPhone SE and similar small devices
 
 export default function SettingsScreen({ onSettingsComplete, onBack, currentSettings }) {
   const [timeLimit, setTimeLimit] = useState(currentSettings.timeLimit);
@@ -111,9 +115,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 50,
-    paddingBottom: 30,
+    paddingHorizontal: isSmallScreen ? 15 : 20,
+    paddingTop: isSmallScreen ? 30 : 50,
+    paddingBottom: isSmallScreen ? 20 : 30,
     justifyContent: 'space-between',
   },
   settingsContent: {
@@ -121,23 +125,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: 36,
+    fontSize: isSmallScreen ? 28 : 36,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: isSmallScreen ? 20 : 40,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 4,
   },
   section: {
-    marginBottom: 40,
+    marginBottom: isSmallScreen ? 25 : 40,
   },
   sectionTitle: {
-    fontSize: 24,
+    fontSize: isSmallScreen ? 20 : 24,
     fontWeight: 'bold',
     color: 'white',
-    marginBottom: 20,
+    marginBottom: isSmallScreen ? 15 : 20,
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
     textShadowOffset: { width: 1, height: 1 },
@@ -150,12 +154,12 @@ const styles = StyleSheet.create({
   },
   optionButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    paddingHorizontal: 20,
-    paddingVertical: 15,
+    paddingHorizontal: isSmallScreen ? 15 : 20,
+    paddingVertical: isSmallScreen ? 12 : 15,
     borderRadius: 25,
-    marginHorizontal: 5,
-    marginVertical: 5,
-    minWidth: 70,
+    marginHorizontal: isSmallScreen ? 3 : 5,
+    marginVertical: isSmallScreen ? 3 : 5,
+    minWidth: isSmallScreen ? 60 : 70,
     borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
@@ -164,7 +168,7 @@ const styles = StyleSheet.create({
     borderColor: '#FFA500',
   },
   optionText: {
-    fontSize: 18,
+    fontSize: isSmallScreen ? 16 : 18,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
@@ -173,11 +177,11 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   difficultyOptions: {
-    gap: 15,
+    gap: isSmallScreen ? 10 : 15,
   },
   difficultyButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    padding: 20,
+    padding: isSmallScreen ? 15 : 20,
     borderRadius: 20,
     borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.3)',
@@ -187,13 +191,13 @@ const styles = StyleSheet.create({
     borderColor: '#FFA500',
   },
   difficultyLabel: {
-    fontSize: 20,
+    fontSize: isSmallScreen ? 18 : 20,
     fontWeight: 'bold',
     color: '#333',
     marginBottom: 5,
   },
   difficultyDescription: {
-    fontSize: 16,
+    fontSize: isSmallScreen ? 14 : 16,
     color: '#666',
   },
   selectedDifficultyText: {
@@ -217,7 +221,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   backButtonText: {
-    fontSize: 16,
+    fontSize: isSmallScreen ? 14 : 16,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
@@ -240,7 +244,7 @@ const styles = StyleSheet.create({
     width: '60%',
   },
   startButtonText: {
-    fontSize: 18,
+    fontSize: isSmallScreen ? 16 : 18,
     fontWeight: 'bold',
     color: 'white',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',

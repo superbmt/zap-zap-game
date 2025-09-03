@@ -1,5 +1,9 @@
-import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, Alert, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
+
+// Get screen dimensions for responsive design
+const { width, height } = Dimensions.get('window');
+const isSmallScreen = height < 700; // iPhone SE and similar small devices
 
 export default function GameScreen({ settings, onGameComplete, onBack }) {
   const [currentQuestion, setCurrentQuestion] = useState(null);
@@ -334,27 +338,27 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    paddingBottom: 20,
+    paddingHorizontal: isSmallScreen ? 15 : 20,
+    paddingTop: isSmallScreen ? 30 : 40,
+    paddingBottom: isSmallScreen ? 15 : 20,
     justifyContent: 'flex-start',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 20,
+    marginBottom: isSmallScreen ? 15 : 20,
   },
   quitButton: {
     backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: isSmallScreen ? 35 : 40,
+    height: isSmallScreen ? 35 : 40,
+    borderRadius: isSmallScreen ? 17.5 : 20,
     justifyContent: 'center',
     alignItems: 'center',
   },
   quitButtonText: {
-    fontSize: 20,
+    fontSize: isSmallScreen ? 18 : 20,
     fontWeight: 'bold',
     color: '#333',
   },
@@ -362,7 +366,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   timer: {
-    fontSize: 24,
+    fontSize: isSmallScreen ? 20 : 24,
     fontWeight: 'bold',
     color: 'white',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
@@ -370,7 +374,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 2,
   },
   scoreText: {
-    fontSize: 18,
+    fontSize: isSmallScreen ? 16 : 18,
     color: 'white',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
@@ -378,10 +382,10 @@ const styles = StyleSheet.create({
   },
   questionContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    padding: 30,
+    padding: isSmallScreen ? 20 : 30,
     borderRadius: 25,
-    marginTop: 10,
-    marginBottom: 20,
+    marginTop: isSmallScreen ? 5 : 10,
+    marginBottom: isSmallScreen ? 15 : 20,
     shadowColor: '#000',
     shadowOffset: {
       width: 0,
@@ -393,7 +397,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   questionText: {
-    fontSize: 36,
+    fontSize: isSmallScreen ? 28 : 36,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
@@ -411,34 +415,34 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   feedbackText: {
-    fontSize: 20,
+    fontSize: isSmallScreen ? 18 : 20,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#333',
   },
   answerContainer: {
     alignItems: 'center',
-    marginTop: 10,
-    marginBottom: 20,
+    marginTop: isSmallScreen ? 5 : 10,
+    marginBottom: isSmallScreen ? 15 : 20,
   },
   answerInput: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    fontSize: 28,
+    fontSize: isSmallScreen ? 24 : 28,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
-    paddingHorizontal: 30,
-    paddingVertical: 15,
+    paddingHorizontal: isSmallScreen ? 25 : 30,
+    paddingVertical: isSmallScreen ? 12 : 15,
     borderRadius: 20,
-    marginBottom: 20,
-    minWidth: 150,
+    marginBottom: isSmallScreen ? 15 : 20,
+    minWidth: isSmallScreen ? 130 : 150,
     borderWidth: 3,
     borderColor: 'rgba(255, 255, 255, 0.3)',
   },
   submitButton: {
     backgroundColor: '#FF6B9D',
-    paddingHorizontal: 40,
-    paddingVertical: 15,
+    paddingHorizontal: isSmallScreen ? 30 : 40,
+    paddingVertical: isSmallScreen ? 12 : 15,
     borderRadius: 30,
     shadowColor: '#000',
     shadowOffset: {
@@ -454,7 +458,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
   },
   submitButtonText: {
-    fontSize: 20,
+    fontSize: isSmallScreen ? 18 : 20,
     fontWeight: 'bold',
     color: 'white',
     textShadowColor: 'rgba(0, 0, 0, 0.3)',
@@ -464,12 +468,12 @@ const styles = StyleSheet.create({
   streakContainer: {
     alignSelf: 'center',
     backgroundColor: 'rgba(255, 215, 0, 0.9)',
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    paddingHorizontal: isSmallScreen ? 15 : 20,
+    paddingVertical: isSmallScreen ? 8 : 10,
     borderRadius: 20,
   },
   streakText: {
-    fontSize: 18,
+    fontSize: isSmallScreen ? 16 : 18,
     fontWeight: 'bold',
     color: '#333',
   },
@@ -479,17 +483,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   endGameTitle: {
-    fontSize: 32,
+    fontSize: isSmallScreen ? 24 : 32,
     fontWeight: 'bold',
     color: 'white',
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: isSmallScreen ? 15 : 20,
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 2, height: 2 },
     textShadowRadius: 4,
   },
   endGameScore: {
-    fontSize: 24,
+    fontSize: isSmallScreen ? 20 : 24,
     color: 'white',
     textAlign: 'center',
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
