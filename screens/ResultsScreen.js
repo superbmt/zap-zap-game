@@ -1,0 +1,401 @@
+import { StyleSheet, Text, View, TouchableOpacity, ImageBackground } from 'react-native';
+import { useEffect, useState } from 'react';
+export default function ResultsScreen({ results, currentProfile, onPlayAgain, onBackToHome, onViewLeaderboard }) {
+  const [isNewPersonalRecord, setIsNewPersonalRecord] = useState(false);
+
+  useEffect(() => {
+    checkPersonalRecord();
+  }, []);
+
+  const checkPersonalRecord = async () => {
+    if (currentProfile && results.score > currentProfile.bestScore) {
+      setIsNewPersonalRecord(true);
+    }
+  };
+
+  const getPerformanceMessage = () => {
+    const accuracy = parseFloat(results.accuracy);
+    
+    if (accuracy >= 90) {
+      return "🏆 Amazing! You're a math superstar! ⭐";
+    } else if (accuracy >= 75) {
+      return "🎉 Great job! You're doing fantastic! 💪";
+    } else if (accuracy >= 60) {
+      return "👍 Good work! Keep practicing! 📚";
+    } else if (accuracy >= 40) {
+      return "💪 Nice try! You're getting better! 🌟";
+    } else {
+      return "🌱 Keep practicing! Every try makes you stronger! 💪";
+    }
+  };
+
+  const getScoreEmoji = () => {
+    const accuracy = parseFloat(results.accuracy);
+    if (accuracy >= 90) return "🏆";
+    if (accuracy >= 75) return "🎉";
+    if (accuracy >= 60) return "👍";
+    if (accuracy >= 40) return "💪";
+    return "🌱";
+  };
+
+  return (
+    <View style={styles.safeContainer}>
+      <ImageBackground
+        source={require('../assets/bg.png')}
+        style={styles.container}
+        resizeMode="cover"
+      >
+        <View style={styles.content}>
+        <Text style={styles.title}>Game Over! {getScoreEmoji()}</Text>
+        
+        {/* Player Info */}
+        {currentProfile && (
+          <View style={styles.playerInfoContainer}>
+            <Text style={styles.playerAvatar}>{currentProfile.avatar.emoji}</Text>
+            <Text style={styles.playerName}>{currentProfile.name}</Text>
+          </View>
+        )}
+        
+        {isNewPersonalRecord && (
+          <View style={styles.recordBanner}>
+            <Text style={styles.recordText}>🏆 NEW PERSONAL BEST! 🏆</Text>
+          </View>
+        )}
+
+        {/* Achievement Cards */}
+        <View style={styles.achievementCards}>
+          <View style={styles.achievementCard}>
+            <View style={styles.cardIcon}>
+              <Text style={styles.cardIconText}>🎯</Text>
+            </View>
+            <Text style={styles.cardTitle}>Score</Text>
+            <Text style={styles.cardValue}>{results.score}/{results.questionsAnswered}</Text>
+          </View>
+          
+          <View style={styles.achievementCard}>
+            <View style={styles.cardIcon}>
+              <Text style={styles.cardIconText}>📊</Text>
+            </View>
+            <Text style={styles.cardTitle}>Accuracy</Text>
+            <Text style={styles.cardValue}>{results.accuracy}%</Text>
+          </View>
+          
+          <View style={styles.achievementCard}>
+            <View style={styles.cardIcon}>
+              <Text style={styles.cardIconText}>🔥</Text>
+            </View>
+            <Text style={styles.cardTitle}>Best Streak</Text>
+            <Text style={styles.cardValue}>{results.streak}</Text>
+          </View>
+        </View>
+
+        {/* Settings Info */}
+        <View style={styles.settingsContainer}>
+          <View style={styles.settingRow}>
+            <Text style={styles.settingLabel}>Time Limit:</Text>
+            <Text style={styles.settingValue}>{results.timeLimit}s</Text>
+          </View>
+          
+          <View style={styles.settingRow}>
+            <Text style={styles.settingLabel}>Difficulty:</Text>
+            <Text style={styles.settingValue}>
+              {results.difficulty === 'easy' ? '🟡 Easy' : 
+               results.difficulty === 'medium' ? '⚪ Medium' : 
+               results.difficulty === 'hard' ? '🔴 Hard' :
+               results.difficulty === 'ultra' ? '🟣 Ultra' :
+               'Unknown'}
+            </Text>
+          </View>
+          
+          {currentProfile && (
+            <View style={styles.settingRow}>
+              <Text style={styles.settingLabel}>Personal Best:</Text>
+              <Text style={styles.settingValue}>{Math.max(currentProfile.bestScore, results.score)}</Text>
+            </View>
+          )}
+        </View>
+
+        <View style={styles.messageContainer}>
+          <Text style={styles.messageText}>{getPerformanceMessage()}</Text>
+        </View>
+
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity style={styles.homeButton} onPress={onBackToHome}>
+            <Text style={styles.homeButtonText}>🏠 Home</Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity style={styles.leaderboardButton} onPress={onViewLeaderboard}>
+            <Text style={styles.leaderboardButtonText}>🏆 Leaderboard</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <TouchableOpacity style={styles.playAgainButton} onPress={onPlayAgain}>
+          <Text style={styles.playAgainButtonText}>Play Again! ⚡</Text>
+        </TouchableOpacity>
+
+        {/* Fun Achievement Badges */}
+        <View style={styles.achievementsContainer}>
+          {parseFloat(results.accuracy) === 100 && results.questionsAnswered >= 5 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>🎯 Perfect!</Text>
+            </View>
+          )}
+          
+          {results.streak >= 10 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>🔥 Hot Streak!</Text>
+            </View>
+          )}
+          
+          {results.score >= 20 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>💪 Speed Demon!</Text>
+            </View>
+          )}
+          
+          {results.questionsAnswered >= 30 && (
+            <View style={styles.badge}>
+              <Text style={styles.badgeText}>🏃‍♂️ Marathon!</Text>
+            </View>
+          )}
+        </View>
+        </View>
+      </ImageBackground>
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  safeContainer: {
+    flex: 1,
+    backgroundColor: '#000', // Fallback color
+  },
+  container: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 50,
+    paddingBottom: 30,
+    justifyContent: 'space-between',
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 15,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
+  },
+  playerInfoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+    marginBottom: 20,
+  },
+  playerAvatar: {
+    fontSize: 24,
+    marginRight: 10,
+  },
+  playerName: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  recordBanner: {
+    backgroundColor: '#FFD700',
+    paddingVertical: 15,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginBottom: 20,
+    borderWidth: 3,
+    borderColor: '#FFA500',
+  },
+  recordText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  achievementCards: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 20,
+    paddingHorizontal: 5,
+  },
+  achievementCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    padding: 15,
+    borderRadius: 20,
+    alignItems: 'center',
+    flex: 0.3,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 6,
+    elevation: 8,
+    marginHorizontal: 3,
+  },
+  cardIcon: {
+    backgroundColor: 'rgba(255, 107, 157, 0.1)',
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  cardIconText: {
+    fontSize: 24,
+  },
+  cardTitle: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#666',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  cardValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#FF6B9D',
+    textAlign: 'center',
+  },
+  settingsContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+  },
+  settingRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  settingLabel: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#666',
+  },
+  settingValue: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  messageContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 30,
+  },
+  messageText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    lineHeight: 24,
+  },
+  buttonContainer: {
+    flexDirection: 'row',
+    marginBottom: 15,
+    width: '100%',
+    justifyContent: 'space-between',
+  },
+  homeButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+    flex: 0.45,
+  },
+  homeButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  leaderboardButton: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 15,
+    paddingVertical: 12,
+    borderRadius: 25,
+    borderWidth: 2,
+    borderColor: '#FFA500',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 6,
+    flex: 0.45,
+  },
+  leaderboardButtonText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  playAgainButton: {
+    backgroundColor: '#FF6B9D',
+    paddingHorizontal: 40,
+    paddingVertical: 15,
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: '#FF1493',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+    alignSelf: 'center',
+    marginBottom: 20,
+  },
+  playAgainButtonText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  achievementsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    gap: 10,
+  },
+  badge: {
+    backgroundColor: '#FFD700',
+    paddingHorizontal: 15,
+    paddingVertical: 8,
+    borderRadius: 20,
+    borderWidth: 2,
+    borderColor: '#FFA500',
+  },
+  badgeText: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+});

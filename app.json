@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "MyFirstApp",
-    "slug": "MyFirstApp",
+    "name": "Zap Zap Math Game",
+    "slug": "zap-zap-math",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,17 +13,36 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "buildNumber": "1",
+      "bundleIdentifier": "com.superbmt.zapzapmath"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.superbmt.zapzapmath",
+      "versionCode": 1
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/favicon.png",
+      "name": "Zap Zap Math Game",
+      "shortName": "Zap Zap",
+      "lang": "en",
+      "scope": "/",
+      "themeColor": "#FF6B9D",
+      "backgroundColor": "#FF6B9D",
+      "display": "standalone",
+      "orientation": "portrait",
+      "startUrl": "/",
+      "preferRelatedApplications": false
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f4e97d70-4a04-431b-99e4-50b5915e82a5"
+      }
     }
   }
 }

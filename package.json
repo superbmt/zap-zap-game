@@ -1,21 +1,36 @@
 {
-  "name": "myfirstapp",
+  "name": "zap-zap-math",
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "version:current": "node scripts/version.js current",
+    "version:patch": "node scripts/version.js bump patch",
+    "version:minor": "node scripts/version.js bump minor",
+    "version:major": "node scripts/version.js bump major",
+    "build:android": "eas build --platform android --profile preview",
+    "build:ios": "eas build --platform ios --profile preview",
+    "build:web": "expo export --platform web",
+    "deploy:web": "npm run build:web && echo 'Deploy dist/ folder to your hosting service'"
   },
   "dependencies": {
+    "@expo/metro-runtime": "~5.0.4",
+    "@react-native-async-storage/async-storage": "^2.2.0",
     "expo": "~53.0.22",
+    "expo-linear-gradient": "~14.1.5",
     "expo-status-bar": "~2.2.3",
     "react": "19.0.0",
-    "react-native": "0.79.6"
+    "react-dom": "19.0.0",
+    "react-native": "0.79.6",
+    "react-native-web": "^0.20.0"
   },
   "devDependencies": {
-    "@babel/core": "^7.20.0"
+    "@babel/core": "^7.20.0",
+    "typescript": "~5.8.3",
+    "@types/react": "~19.0.10"
   },
   "private": true
 }

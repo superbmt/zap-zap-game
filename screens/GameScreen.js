@@ -1,0 +1,493 @@
+import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+
+export default function GameScreen({ settings, onGameComplete, onBack }) {
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [userAnswer, setUserAnswer] = useState('');
+  const [score, setScore] = useState(0);
+  const [questionsAnswered, setQuestionsAnswered] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(settings.timeLimit);
+  const [isGameActive, setIsGameActive] = useState(true);
+  const [feedback, setFeedback] = useState('');
+  const [streak, setStreak] = useState(0);
+  const [bestStreak, setBestStreak] = useState(0);
+  const intervalRef = useRef(null);
+  const textInputRef = useRef(null);
+
+  // Generate random math problem based on difficulty
+  const generateQuestion = () => {
+    let num1, num2, operator, answer;
+    
+    switch (settings.difficulty) {
+      case 'easy': // Ages 4-6: Single digits (0-9), + and -
+        num1 = Math.floor(Math.random() * 10);
+        num2 = Math.floor(Math.random() * 10);
+        operator = Math.random() < 0.5 ? '+' : '-';
+        if (operator === '-' && num1 < num2) {
+          [num1, num2] = [num2, num1]; // Ensure positive result
+        }
+        answer = operator === '+' ? num1 + num2 : num1 - num2;
+        break;
+        
+      case 'medium': // Ages 7-9: Up to 99, + - × ÷
+        const mediumOperators = ['+', '-', '×', '÷'];
+        operator = mediumOperators[Math.floor(Math.random() * mediumOperators.length)];
+        
+        if (operator === '+' || operator === '-') {
+          // Double-digit addition and subtraction
+          num1 = Math.floor(Math.random() * 90) + 10; // 10-99
+          num2 = Math.floor(Math.random() * 90) + 10; // 10-99
+          if (operator === '-' && num1 < num2) {
+            [num1, num2] = [num2, num1]; // Ensure positive result
+          }
+          answer = operator === '+' ? num1 + num2 : num1 - num2;
+        } else if (operator === '×') {
+          // Easy multiplication (single digit × single digit)
+          num1 = Math.floor(Math.random() * 9) + 2; // 2-10
+          num2 = Math.floor(Math.random() * 9) + 2; // 2-10
+          answer = num1 * num2;
+        } else { // ÷
+          // Easy division - ensure clean division
+          answer = Math.floor(Math.random() * 10) + 2; // 2-11
+          num2 = Math.floor(Math.random() * 8) + 2; // 2-9
+          num1 = answer * num2;
+          answer = num1 / num2;
+        }
+        break;
+        
+      case 'hard': // Ages 9-11: Up to 999, triple-digit math
+        const hardOperators = ['+', '-', '×', '÷'];
+        operator = hardOperators[Math.floor(Math.random() * hardOperators.length)];
+        
+        if (operator === '+' || operator === '-') {
+          // Triple-digit addition and subtraction
+          num1 = Math.floor(Math.random() * 900) + 100; // 100-999
+          num2 = Math.floor(Math.random() * 900) + 100; // 100-999
+          if (operator === '-' && num1 < num2) {
+            [num1, num2] = [num2, num1]; // Ensure positive result
+          }
+          answer = operator === '+' ? num1 + num2 : num1 - num2;
+        } else if (operator === '×') {
+          // Intermediate multiplication (double digit × single digit)
+          num1 = Math.floor(Math.random() * 90) + 10; // 10-99
+          num2 = Math.floor(Math.random() * 9) + 2; // 2-10
+          answer = num1 * num2;
+        } else { // ÷
+          // Intermediate division
+          answer = Math.floor(Math.random() * 50) + 5; // 5-54
+          num2 = Math.floor(Math.random() * 15) + 2; // 2-16
+          num1 = answer * num2;
+          answer = num1 / num2;
+        }
+        break;
+        
+      case 'ultra': // Ages 11+: Up to 9999, complex problems
+        const ultraOperators = ['+', '-', '×', '÷'];
+        operator = ultraOperators[Math.floor(Math.random() * ultraOperators.length)];
+        
+        if (operator === '+' || operator === '-') {
+          // 4-digit addition and subtraction
+          num1 = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+          num2 = Math.floor(Math.random() * 9000) + 1000; // 1000-9999
+          if (operator === '-' && num1 < num2) {
+            [num1, num2] = [num2, num1]; // Ensure positive result
+          }
+          answer = operator === '+' ? num1 + num2 : num1 - num2;
+        } else if (operator === '×') {
+          // Challenging multiplication (double digit × double digit)
+          num1 = Math.floor(Math.random() * 90) + 10; // 10-99
+          num2 = Math.floor(Math.random() * 90) + 10; // 10-99
+          answer = num1 * num2;
+        } else { // ÷
+          // Challenging division
+          answer = Math.floor(Math.random() * 200) + 10; // 10-209
+          num2 = Math.floor(Math.random() * 25) + 5; // 5-29
+          num1 = answer * num2;
+          answer = num1 / num2;
+        }
+        break;
+        
+      default: // Fallback to easy
+        num1 = Math.floor(Math.random() * 10);
+        num2 = Math.floor(Math.random() * 10);
+        operator = '+';
+        answer = num1 + num2;
+        break;
+    }
+    
+    return {
+      question: `${num1} ${operator} ${num2} = ?`,
+      answer: Math.round(answer)
+    };
+  };
+
+  // Initialize first question
+  useEffect(() => {
+    setCurrentQuestion(generateQuestion());
+  }, []);
+
+  // Timer logic
+  useEffect(() => {
+    if (isGameActive && timeLeft > 0) {
+      intervalRef.current = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 1) {
+            endGame();
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+    }
+    
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+      }
+    };
+  }, [isGameActive, timeLeft]);
+
+  // Ensure TextInput stays focused for better Android experience
+  useEffect(() => {
+    if (isGameActive && !feedback && textInputRef.current) {
+      const focusTimer = setTimeout(() => {
+        textInputRef.current?.focus();
+      }, 100);
+      return () => clearTimeout(focusTimer);
+    }
+  }, [currentQuestion, feedback, isGameActive]);
+
+  const endGame = () => {
+    setIsGameActive(false);
+    if (intervalRef.current) {
+      clearInterval(intervalRef.current);
+    }
+    
+    const results = {
+      score,
+      questionsAnswered,
+      timeLimit: settings.timeLimit,
+      difficulty: settings.difficulty,
+      accuracy: questionsAnswered > 0 ? (score / questionsAnswered * 100).toFixed(1) : 0,
+      streak: bestStreak
+    };
+    
+    setTimeout(() => {
+      onGameComplete(results);
+    }, 1500);
+  };
+
+  const handleNumberInput = (text) => {
+    // Only allow numbers (remove any non-numeric characters)
+    const numericText = text.replace(/[^0-9]/g, '');
+    setUserAnswer(numericText);
+  };
+
+  const handleAnswerSubmit = () => {
+    if (!userAnswer.trim() || !isGameActive) return;
+    
+    const userNum = parseInt(userAnswer);
+    const isCorrect = userNum === currentQuestion.answer;
+    
+    setQuestionsAnswered(prev => prev + 1);
+    
+    if (isCorrect) {
+      setScore(prev => prev + 1);
+      setStreak(prev => {
+        const newStreak = prev + 1;
+        // Update best streak if current streak is now higher
+        setBestStreak(current => Math.max(current, newStreak));
+        return newStreak;
+      });
+      setFeedback('🎉 Correct!');
+    } else {
+      setStreak(0);
+      setFeedback(`❌ Wrong! Answer: ${currentQuestion.answer}`);
+    }
+    
+    // Show feedback briefly then generate new question
+    setTimeout(() => {
+      setFeedback('');
+      setUserAnswer('');
+      setCurrentQuestion(generateQuestion());
+      // Refocus the input to keep keyboard persistent on Android
+      setTimeout(() => {
+        textInputRef.current?.focus();
+      }, 100);
+    }, 1000);
+  };
+
+  const handleQuit = () => {
+    Alert.alert(
+      'Quit Game?',
+      'Are you sure you want to quit? Your progress will be lost.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Quit', onPress: onBack }
+      ]
+    );
+  };
+
+  if (!isGameActive && timeLeft === 0) {
+    return (
+      <ImageBackground
+        source={require('../assets/bg.png')}
+        style={styles.backgroundContainer}
+        resizeMode="cover"
+      >
+        <View style={styles.endGameContent}>
+          <Text style={styles.endGameTitle}>Time's Up! ⏰</Text>
+          <Text style={styles.endGameScore}>Final Score: {score}/{questionsAnswered}</Text>
+        </View>
+      </ImageBackground>
+    );
+  }
+
+  return (
+    <ImageBackground
+      source={require('../assets/bg.png')}
+      style={styles.backgroundContainer}
+      resizeMode="cover"
+    >
+      <KeyboardAvoidingView 
+        style={styles.safeContainer}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={styles.content}>
+        {/* Header with timer and score */}
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.quitButton} onPress={handleQuit}>
+            <Text style={styles.quitButtonText}>✕</Text>
+          </TouchableOpacity>
+          
+          <View style={styles.statsContainer}>
+            <Text style={styles.timer}>⏱️ {timeLeft}s</Text>
+            <Text style={styles.scoreText}>Score: {score}/{questionsAnswered}</Text>
+          </View>
+        </View>
+
+        {/* Question Display */}
+        <View style={styles.questionContainer}>
+          <Text style={styles.questionText}>
+            {currentQuestion?.question || 'Loading...'}
+          </Text>
+        </View>
+
+        {/* Feedback */}
+        {feedback ? (
+          <View style={styles.feedbackContainer}>
+            <Text style={styles.feedbackText}>{feedback}</Text>
+          </View>
+        ) : null}
+
+        {/* Answer Input */}
+        <View style={styles.answerContainer}>
+          <TextInput
+            ref={textInputRef}
+            style={styles.answerInput}
+            value={userAnswer}
+            onChangeText={handleNumberInput}
+            keyboardType="numeric"
+            inputMode="numeric"
+            placeholder="Your answer"
+            placeholderTextColor="#999"
+            onSubmitEditing={handleAnswerSubmit}
+            editable={isGameActive}
+            autoFocus={true}
+            maxLength={6}
+            selectTextOnFocus={true}
+            blurOnSubmit={false}
+            returnKeyType="done"
+          />
+          
+          <TouchableOpacity 
+            style={[styles.submitButton, (!userAnswer.trim() || !isGameActive || !!feedback) && styles.disabledButton]} 
+            onPress={handleAnswerSubmit}
+            disabled={!userAnswer.trim() || !isGameActive || !!feedback}
+          >
+            <Text style={styles.submitButtonText}>Submit ⚡</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Streak indicator */}
+        {streak > 2 && (
+          <View style={styles.streakContainer}>
+            <Text style={styles.streakText}>🔥 {streak} in a row!</Text>
+          </View>
+        )}
+      </View>
+      </KeyboardAvoidingView>
+    </ImageBackground>
+  );
+}
+
+const styles = StyleSheet.create({
+  backgroundContainer: {
+    flex: 1,
+    width: '100%',
+    height: '100%',
+  },
+  safeContainer: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 20,
+    justifyContent: 'flex-start',
+  },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  quitButton: {
+    backgroundColor: 'rgba(255, 255, 255, 0.8)',
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  quitButtonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  statsContainer: {
+    alignItems: 'center',
+  },
+  timer: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    color: 'white',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  scoreText: {
+    fontSize: 18,
+    color: 'white',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  questionContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    padding: 40,
+    borderRadius: 25,
+    marginTop: 20,
+    marginBottom: 40,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 6,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 12,
+  },
+  questionText: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+  },
+  feedbackContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    padding: 20,
+    borderRadius: 15,
+    marginBottom: 20,
+    alignSelf: 'center',
+  },
+  feedbackText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#333',
+  },
+  answerContainer: {
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 40,
+  },
+  answerInput: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    fontSize: 28,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    paddingHorizontal: 30,
+    paddingVertical: 15,
+    borderRadius: 20,
+    marginBottom: 20,
+    minWidth: 150,
+    borderWidth: 3,
+    borderColor: 'rgba(255, 255, 255, 0.3)',
+  },
+  submitButton: {
+    backgroundColor: '#FF6B9D',
+    paddingHorizontal: 40,
+    paddingVertical: 15,
+    borderRadius: 30,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 8,
+  },
+  disabledButton: {
+    backgroundColor: '#ccc',
+    shadowOpacity: 0.1,
+  },
+  submitButtonText: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: 'white',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+  streakContainer: {
+    alignSelf: 'center',
+    backgroundColor: 'rgba(255, 215, 0, 0.9)',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  streakText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+  },
+  endGameContent: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  endGameTitle: {
+    fontSize: 32,
+    fontWeight: 'bold',
+    color: 'white',
+    textAlign: 'center',
+    marginBottom: 20,
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
+  },
+  endGameScore: {
+    fontSize: 24,
+    color: 'white',
+    textAlign: 'center',
+    textShadowColor: 'rgba(0, 0, 0, 0.5)',
+    textShadowOffset: { width: 1, height: 1 },
+    textShadowRadius: 2,
+  },
+});
