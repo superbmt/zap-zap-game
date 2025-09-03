@@ -162,14 +162,15 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
           if (Platform.OS === 'web') {
             // Trigger click event to ensure keyboard shows on Safari
             textInputRef.current.click?.();
-            // Force selection to maintain keyboard
-            textInputRef.current.setSelectionRange?.(0, userAnswer.length);
+            // Position cursor at end instead of selecting all text
+            const length = userAnswer.length;
+            textInputRef.current.setSelectionRange?.(length, length);
           }
         }
       }, 100);
       return () => clearTimeout(focusTimer);
     }
-  }, [currentQuestion, feedback, isGameActive, userAnswer]);
+  }, [currentQuestion, feedback, isGameActive]);
 
   const endGame = () => {
     setIsGameActive(false);
@@ -328,7 +329,7 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
             editable={isGameActive}
             autoFocus={true}
             maxLength={6}
-            selectTextOnFocus={true}
+            selectTextOnFocus={false}
             blurOnSubmit={false}
             returnKeyType="done"
             // Additional mobile Safari optimizations
