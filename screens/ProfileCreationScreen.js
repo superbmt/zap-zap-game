@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, S
 import { useState } from 'react';
 import { ProfileManager, AVATAR_OPTIONS } from '../utils/profileManager';
 
-export default function ProfileCreationScreen({ onProfileCreated, onBack }) {
+export default function ProfileCreationScreen({ onProfileCreated, onBack, playClickSound }) {
   const [playerName, setPlayerName] = useState('');
   const [selectedAvatar, setSelectedAvatar] = useState(AVATAR_OPTIONS[0].id);
   const [isCreating, setIsCreating] = useState(false);
@@ -11,6 +11,20 @@ export default function ProfileCreationScreen({ onProfileCreated, onBack }) {
     // Allow letters, numbers, spaces, and some basic punctuation
     const cleanText = text.replace(/[^a-zA-Z0-9\s\-_]/g, '').slice(0, 20);
     setPlayerName(cleanText);
+  };
+
+  const handleAvatarSelect = async (avatarId) => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    setSelectedAvatar(avatarId);
+  };
+
+  const handleBack = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    onBack();
   };
 
   const handleCreateProfile = async () => {
@@ -24,6 +38,10 @@ export default function ProfileCreationScreen({ onProfileCreated, onBack }) {
       return;
     }
 
+    if (playClickSound) {
+      await playClickSound();
+    }
+    
     setIsCreating(true);
     
     try {
@@ -93,7 +111,7 @@ export default function ProfileCreationScreen({ onProfileCreated, onBack }) {
                     styles.avatarOption,
                     selectedAvatar === avatar.id && styles.selectedAvatarOption
                   ]}
-                  onPress={() => setSelectedAvatar(avatar.id)}
+                  onPress={() => handleAvatarSelect(avatar.id)}
                 >
                   <Text style={styles.avatarEmoji}>{avatar.emoji}</Text>
                 </TouchableOpacity>
@@ -103,7 +121,7 @@ export default function ProfileCreationScreen({ onProfileCreated, onBack }) {
 
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
             

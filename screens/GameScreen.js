@@ -1,11 +1,11 @@
-import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, Alert, KeyboardAvoidingView, Platform, Dimensions, Modal } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, Alert, KeyboardAvoidingView, Platform, Dimensions, Modal, Animated } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 
 // Get screen dimensions for responsive design
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 700; // iPhone SE and similar small devices
 
-export default function GameScreen({ settings, onGameComplete, onBack }) {
+export default function GameScreen({ settings, onGameComplete, onBack, playClickSound, startGameMusic, stopGameMusic, fadeOutGameMusic }) {
   const [currentQuestion, setCurrentQuestion] = useState(null);
   const [userAnswer, setUserAnswer] = useState('');
   const [score, setScore] = useState(0);
@@ -16,8 +16,11 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
   const [showQuitModal, setShowQuitModal] = useState(false);
+  const [showTimesUp, setShowTimesUp] = useState(false);
   const intervalRef = useRef(null);
   const textInputRef = useRef(null);
+  const timesUpScale = useRef(new Animated.Value(0)).current;
+  const timesUpOpacity = useRef(new Animated.Value(0)).current;
 
   // Generate random math problem based on difficulty
   const generateQuestion = () => {
@@ -126,10 +129,22 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
     };
   };
 
-  // Initialize first question
+  // Initialize first question and start game music
   useEffect(() => {
     setCurrentQuestion(generateQuestion());
-  }, []);
+    
+    // Start game music
+    if (startGameMusic) {
+      startGameMusic();
+    }
+    
+    // Cleanup: stop game music when component unmounts
+    return () => {
+      if (stopGameMusic) {
+        stopGameMusic();
+      }
+    };
+  }, [startGameMusic, stopGameMusic, fadeOutGameMusic]);
 
   // Timer logic
   useEffect(() => {
@@ -179,6 +194,29 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
       clearInterval(intervalRef.current);
     }
     
+    // Start music fade-out and show "Time's up!" animation
+    if (fadeOutGameMusic) {
+      fadeOutGameMusic(2000); // Fade out over 2 seconds
+    }
+    
+    // Show animated "Time's up!" message
+    setShowTimesUp(true);
+    
+    // Animate the "Time's up!" message
+    Animated.parallel([
+      Animated.spring(timesUpScale, {
+        toValue: 1,
+        tension: 100,
+        friction: 8,
+        useNativeDriver: true,
+      }),
+      Animated.timing(timesUpOpacity, {
+        toValue: 1,
+        duration: 300,
+        useNativeDriver: true,
+      })
+    ]).start();
+    
     const results = {
       score,
       questionsAnswered,
@@ -188,9 +226,14 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
       streak: bestStreak
     };
     
+    // Wait longer for the animation and music fade-out
     setTimeout(() => {
+      // Stop game music completely before transitioning
+      if (stopGameMusic) {
+        stopGameMusic();
+      }
       onGameComplete(results);
-    }, 1500);
+    }, 2500); // Increased delay for better transition
   };
 
   const handleNumberInput = (text) => {
@@ -199,8 +242,13 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
     setUserAnswer(numericText);
   };
 
-  const handleAnswerSubmit = () => {
+  const handleAnswerSubmit = async () => {
     if (!userAnswer.trim() || !isGameActive) return;
+    
+    // Play click sound for submit
+    if (playClickSound) {
+      await playClickSound();
+    }
     
     const userNum = parseInt(userAnswer);
     const isCorrect = userNum === currentQuestion.answer;
@@ -255,29 +303,22 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
     setShowQuitModal(true);
   };
 
-  const handleConfirmQuit = () => {
+  const handleConfirmQuit = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
     setShowQuitModal(false);
     onBack();
   };
 
-  const handleCancelQuit = () => {
+  const handleCancelQuit = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
     setShowQuitModal(false);
   };
 
-  if (!isGameActive && timeLeft === 0) {
-    return (
-      <ImageBackground
-        source={require('../assets/bg.png')}
-        style={styles.backgroundContainer}
-        resizeMode="cover"
-      >
-        <View style={styles.endGameContent}>
-          <Text style={styles.endGameTitle}>Time's Up! ⏰</Text>
-          <Text style={styles.endGameScore}>Final Score: {score}/{questionsAnswered}</Text>
-        </View>
-      </ImageBackground>
-    );
-  }
+  // Remove the static end game view - we'll use the animated overlay instead
 
   return (
     <ImageBackground
@@ -291,15 +332,20 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
         keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <View style={styles.content}>
-        {/* Header with timer and score */}
-        <View style={styles.header}>
-          <TouchableOpacity style={styles.quitButton} onPress={handleQuit}>
-            <Text style={styles.quitButtonText}>✕</Text>
-          </TouchableOpacity>
-          
-          <View style={styles.statsContainer}>
-            <Text style={styles.timer}>⏱️ {timeLeft}s</Text>
-            <Text style={styles.scoreText}>Score: {score}/{questionsAnswered}</Text>
+        {/* Quit Button - positioned to match sound button */}
+        <TouchableOpacity style={styles.quitButton} onPress={handleQuit}>
+          <Text style={styles.quitButtonText}>✕</Text>
+        </TouchableOpacity>
+        
+        {/* Timer and Score Cards - centered */}
+        <View style={styles.statsContainer}>
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>⏱️ Time</Text>
+            <Text style={styles.statValue}>{timeLeft}s</Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statLabel}>Score</Text>
+            <Text style={styles.statValue}>{score}/{questionsAnswered}</Text>
           </View>
         </View>
 
@@ -408,6 +454,24 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
           </View>
         </View>
       </Modal>
+
+      {/* Animated "Time's up!" Overlay */}
+      {showTimesUp && (
+        <View style={styles.timesUpOverlay}>
+          <Animated.View 
+            style={[
+              styles.timesUpContainer,
+              {
+                transform: [{ scale: timesUpScale }],
+                opacity: timesUpOpacity,
+              }
+            ]}
+          >
+            <Text style={styles.timesUpText}>Time's Up! ⏰</Text>
+            <Text style={styles.timesUpScore}>Final Score: {score}/{questionsAnswered}</Text>
+          </Animated.View>
+        </View>
+      )}
     </ImageBackground>
   );
 }
@@ -429,42 +493,65 @@ const styles = StyleSheet.create({
     paddingBottom: isSmallScreen ? 15 : 20,
     justifyContent: 'flex-start',
   },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: isSmallScreen ? 15 : 20,
-  },
   quitButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    width: isSmallScreen ? 35 : 40,
-    height: isSmallScreen ? 35 : 40,
-    borderRadius: isSmallScreen ? 17.5 : 20,
+    position: 'absolute',
+    top: isSmallScreen ? 15 : 20,
+    left: isSmallScreen ? 15 : 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    width: isSmallScreen ? 45 : 50,
+    height: isSmallScreen ? 45 : 50,
+    borderRadius: isSmallScreen ? 22.5 : 25,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 10,
+    zIndex: 1000,
   },
   quitButtonText: {
-    fontSize: isSmallScreen ? 18 : 20,
+    fontSize: isSmallScreen ? 20 : 22,
     fontWeight: 'bold',
     color: '#333',
   },
   statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
+    gap: isSmallScreen ? 10 : 15,
+    marginTop: isSmallScreen ? 70 : 80,
+    marginBottom: isSmallScreen ? 15 : 20,
   },
-  timer: {
-    fontSize: isSmallScreen ? 20 : 24,
+  statCard: {
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
+    paddingHorizontal: isSmallScreen ? 12 : 16,
+    paddingVertical: isSmallScreen ? 8 : 10,
+    borderRadius: isSmallScreen ? 12 : 15,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    minWidth: isSmallScreen ? 70 : 80,
+  },
+  statLabel: {
+    fontSize: isSmallScreen ? 10 : 12,
+    color: '#666',
+    marginBottom: 2,
+    fontWeight: '600',
+  },
+  statValue: {
+    fontSize: isSmallScreen ? 14 : 16,
     fontWeight: 'bold',
-    color: 'white',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
-  },
-  scoreText: {
-    fontSize: isSmallScreen ? 16 : 18,
-    color: 'white',
-    textShadowColor: 'rgba(0, 0, 0, 0.5)',
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 2,
+    color: '#333',
   },
   questionContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.95)',
@@ -647,5 +734,44 @@ const styles = StyleSheet.create({
     fontSize: isSmallScreen ? 14 : 16,
     fontWeight: '600',
     color: 'white',
+  },
+  timesUpOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+  },
+  timesUpContainer: {
+    backgroundColor: 'rgba(255, 255, 255, 0.95)',
+    paddingHorizontal: isSmallScreen ? 40 : 60,
+    paddingVertical: isSmallScreen ? 30 : 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.3,
+    shadowRadius: 16,
+    elevation: 20,
+  },
+  timesUpText: {
+    fontSize: isSmallScreen ? 32 : 42,
+    fontWeight: 'bold',
+    color: '#FF6B9D',
+    textAlign: 'center',
+    marginBottom: isSmallScreen ? 15 : 20,
+    textShadowColor: 'rgba(0, 0, 0, 0.1)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
+  },
+  timesUpScore: {
+    fontSize: isSmallScreen ? 18 : 22,
+    fontWeight: '600',
+    color: '#333',
+    textAlign: 'center',
   },
 });

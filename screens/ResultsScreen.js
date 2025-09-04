@@ -5,17 +5,56 @@ import { useEffect, useState } from 'react';
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 700; // iPhone SE and similar small devices
 
-export default function ResultsScreen({ results, currentProfile, onPlayAgain, onBackToHome, onViewLeaderboard }) {
+export default function ResultsScreen({ results, currentProfile, onPlayAgain, onBackToHome, onViewLeaderboard, playClickSound, playTadaSound, restoreBackgroundMusic }) {
   const [isNewPersonalRecord, setIsNewPersonalRecord] = useState(false);
 
   useEffect(() => {
     checkPersonalRecord();
-  }, []);
+    
+    // Play tada sound and then restore background music
+    const playResultsAudio = async () => {
+      if (playTadaSound) {
+        await playTadaSound();
+        console.log('🎉 Tada sound played');
+        
+        // Wait for tada sound to finish, then restore background music
+        setTimeout(() => {
+          if (restoreBackgroundMusic) {
+            restoreBackgroundMusic(0.3, 1000);
+            console.log('🎵 Background music restored after tada');
+          }
+        }, 2000); // Wait 2 seconds for tada sound to finish
+      }
+    };
+    
+    playResultsAudio();
+  }, [playTadaSound, restoreBackgroundMusic]);
 
   const checkPersonalRecord = async () => {
     if (currentProfile && results.score > currentProfile.bestScore) {
       setIsNewPersonalRecord(true);
     }
+  };
+
+  const handlePlayAgain = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    onPlayAgain();
+  };
+
+  const handleBackToHome = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    onBackToHome();
+  };
+
+  const handleViewLeaderboard = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    onViewLeaderboard();
   };
 
   const getPerformanceMessage = () => {
@@ -125,16 +164,16 @@ export default function ResultsScreen({ results, currentProfile, onPlayAgain, on
         </View>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.homeButton} onPress={onBackToHome}>
+          <TouchableOpacity style={styles.homeButton} onPress={handleBackToHome}>
             <Text style={styles.homeButtonText}>🏠 Home</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.leaderboardButton} onPress={onViewLeaderboard}>
+          <TouchableOpacity style={styles.leaderboardButton} onPress={handleViewLeaderboard}>
             <Text style={styles.leaderboardButtonText}>🏆 Leaderboard</Text>
           </TouchableOpacity>
         </View>
         
-        <TouchableOpacity style={styles.playAgainButton} onPress={onPlayAgain}>
+        <TouchableOpacity style={styles.playAgainButton} onPress={handlePlayAgain}>
           <Text style={styles.playAgainButtonText}>Play Again! ⚡</Text>
         </TouchableOpacity>
 

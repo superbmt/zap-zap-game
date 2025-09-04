@@ -6,7 +6,7 @@ import { ProfileManager } from '../utils/profileManager';
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 700; // iPhone SE and similar small devices
 
-export default function ProfileSelectionScreen({ onProfileSelected, onCreateNew, onBack }) {
+export default function ProfileSelectionScreen({ onProfileSelected, onCreateNew, onBack, playClickSound }) {
   const [profiles, setProfiles] = useState([]);
   const [currentProfile, setCurrentProfile] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -29,12 +29,36 @@ export default function ProfileSelectionScreen({ onProfileSelected, onCreateNew,
   };
 
   const handleProfileSelect = async (profile) => {
+    if (playClickSound) {
+      await playClickSound();
+    }
     try {
       await ProfileManager.setCurrentProfile(profile.id);
       onProfileSelected(profile);
     } catch (error) {
       console.error('Error selecting profile:', error);
     }
+  };
+
+  const handleCreateNew = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    onCreateNew();
+  };
+
+  const handleBack = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    onBack();
+  };
+
+  const handleContinue = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    onProfileSelected(currentProfile);
   };
 
   if (loading) {
@@ -144,21 +168,21 @@ export default function ProfileSelectionScreen({ onProfileSelected, onCreateNew,
           )}
 
           {/* Create New Profile Button */}
-          <TouchableOpacity style={styles.createNewButton} onPress={onCreateNew}>
+          <TouchableOpacity style={styles.createNewButton} onPress={handleCreateNew}>
             <Text style={styles.createNewEmoji}>➕</Text>
             <Text style={styles.createNewText}>Create New Player</Text>
           </TouchableOpacity>
 
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
             
             {currentProfile && (
               <TouchableOpacity 
                 style={styles.continueButton} 
-                onPress={() => onProfileSelected(currentProfile)}
+                onPress={handleContinue}
               >
                 <Text style={styles.continueButtonText}>
                   Continue ⚡

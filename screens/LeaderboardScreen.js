@@ -2,7 +2,7 @@ import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, ScrollView }
 import { useState, useEffect } from 'react';
 import { ProfileManager } from '../utils/profileManager';
 
-export default function LeaderboardScreen({ onBack, initialSettings }) {
+export default function LeaderboardScreen({ onBack, initialSettings, playClickSound }) {
   const [nestedLeaderboards, setNestedLeaderboards] = useState({});
   const [selectedDifficulty, setSelectedDifficulty] = useState(initialSettings?.difficulty || 'easy');
   const [selectedTimeLimit, setSelectedTimeLimit] = useState(initialSettings?.timeLimit || 30);
@@ -26,6 +26,27 @@ export default function LeaderboardScreen({ onBack, initialSettings }) {
   useEffect(() => {
     loadLeaderboards();
   }, []);
+
+  const handleDifficultyChange = async (difficulty) => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    setSelectedDifficulty(difficulty);
+  };
+
+  const handleTimeLimitChange = async (timeLimit) => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    setSelectedTimeLimit(timeLimit);
+  };
+
+  const handleBack = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    onBack();
+  };
 
   const loadLeaderboards = async () => {
     try {
@@ -97,7 +118,7 @@ export default function LeaderboardScreen({ onBack, initialSettings }) {
                     styles.difficultyTab,
                     selectedDifficulty === difficulty.key && styles.selectedDifficultyTab,
                   ]}
-                  onPress={() => setSelectedDifficulty(difficulty.key)}
+                  onPress={() => handleDifficultyChange(difficulty.key)}
                 >
                   <View style={[styles.difficultyColorIndicator, { backgroundColor: difficulty.color }]} />
                   <Text style={[
@@ -120,7 +141,7 @@ export default function LeaderboardScreen({ onBack, initialSettings }) {
                   selectedTimeLimit === timeLimit.key && styles.selectedTimeLimitTab,
                   { borderColor: timeLimit.color }
                 ]}
-                onPress={() => setSelectedTimeLimit(timeLimit.key)}
+                onPress={() => handleTimeLimitChange(timeLimit.key)}
               >
                 <Text style={[
                   styles.timeLimitTabText,
@@ -229,7 +250,7 @@ export default function LeaderboardScreen({ onBack, initialSettings }) {
           )}
 
           {/* Back Button */}
-          <TouchableOpacity style={styles.backButton} onPress={onBack}>
+          <TouchableOpacity style={styles.backButton} onPress={handleBack}>
             <Text style={styles.backButtonText}>Back to Game 🎮</Text>
           </TouchableOpacity>
         </ScrollView>

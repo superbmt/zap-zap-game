@@ -5,27 +5,73 @@ import { useState, useEffect, useRef } from 'react';
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 700; // iPhone SE and similar small devices
 
-export default function CountdownScreen({ onCountdownComplete }) {
+export default function CountdownScreen({ 
+  onCountdownComplete, 
+  fadeBackgroundMusic, 
+  restoreBackgroundMusic, 
+  playCountdownSound, 
+  playGameStartSound 
+}) {
   const [currentText, setCurrentText] = useState('Get Ready!');
   const [isComplete, setIsComplete] = useState(false);
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
+  const countdownStarted = useRef(false);
+  const isMounted = useRef(true);
 
   useEffect(() => {
+    // Only run countdown once
+    if (countdownStarted.current) return;
+    
+    countdownStarted.current = true;
+    console.log('🎬 CountdownScreen: Starting countdown (only once)');
+    
+    // Fade background music when countdown screen loads
+    if (fadeBackgroundMusic) {
+      fadeBackgroundMusic(0, 1000); // Fade to 0% volume over 1 second
+    }
+    
     startCountdown();
-  }, []);
+    
+    // Cleanup: restore background music when component unmounts
+    return () => {
+      console.log('🧹 CountdownScreen: Cleanup');
+      isMounted.current = false;
+      
+      if (restoreBackgroundMusic) {
+        restoreBackgroundMusic(0.3, 1000); // Restore to 30% volume over 1 second
+      }
+    };
+  }, []); // Empty dependency array - run only once
 
   const startCountdown = async () => {
-    // Animation sequence
+    console.log('⚡ Starting countdown sequence');
+    
+    // Check if component is still mounted
+    if (!isMounted.current) {
+      console.log('❌ Component unmounted, aborting countdown');
+      return;
+    }
+    
+    // Wait a moment for background music to start fading
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Animation sequence with better timing
     const sequence = [
-      { text: 'Get Ready!', duration: 1500 },
-      { text: '3', duration: 800 },
-      { text: '2', duration: 800 },
-      { text: '1', duration: 800 },
-      { text: 'GO!', duration: 1000 }
+      { text: 'Get Ready!', duration: 1500, hasSound: false },
+      { text: '3', duration: 900, hasSound: true },
+      { text: '2', duration: 900, hasSound: true },
+      { text: '1', duration: 900, hasSound: true },
+      { text: 'GO!', duration: 1200, hasSound: true }
     ];
 
     for (let i = 0; i < sequence.length; i++) {
+      // Check if component is still mounted before each step
+      if (!isMounted.current) {
+        console.log('❌ Component unmounted during countdown, aborting');
+        return;
+      }
+      
       const item = sequence[i];
       
       // Reset animations
@@ -34,6 +80,7 @@ export default function CountdownScreen({ onCountdownComplete }) {
       
       // Update text
       setCurrentText(item.text);
+      console.log(`📢 Countdown: ${item.text} (step ${i + 1}/${sequence.length})`);
       
       // Animate in
       Animated.parallel([
@@ -50,8 +97,30 @@ export default function CountdownScreen({ onCountdownComplete }) {
         }),
       ]).start();
       
-      // Wait for duration
-      await new Promise(resolve => setTimeout(resolve, item.duration));
+      // Wait a moment for animation to start, then play sound
+      await new Promise(resolve => setTimeout(resolve, 150));
+      
+      // Check again before playing sound
+      if (!isMounted.current) return;
+      
+      // Play appropriate sound after animation starts (only if item has sound)
+      if (item.hasSound && item.text !== 'Get Ready!') {
+        if (['3', '2', '1'].includes(item.text) && playCountdownSound) {
+          await playCountdownSound();
+          // Small delay after countdown sound
+          await new Promise(resolve => setTimeout(resolve, 50));
+        } else if (item.text === 'GO!' && playGameStartSound) {
+          await playGameStartSound();
+          // Small delay after game start sound
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+      }
+      
+      // Wait for remaining duration
+      await new Promise(resolve => setTimeout(resolve, item.duration - 200));
+      
+      // Check before animating out
+      if (!isMounted.current) return;
       
       // Animate out (except for last item)
       if (i < sequence.length - 1) {
@@ -68,14 +137,23 @@ export default function CountdownScreen({ onCountdownComplete }) {
           }),
         ]).start();
         
-        await new Promise(resolve => setTimeout(resolve, 200));
+        await new Promise(resolve => setTimeout(resolve, 300)); // Longer pause between numbers
       }
     }
     
+    // Final check before completing
+    if (!isMounted.current) {
+      console.log('❌ Component unmounted before completion');
+      return;
+    }
+    
     // Complete countdown
+    console.log('✅ Countdown sequence completed');
     setIsComplete(true);
     setTimeout(() => {
-      onCountdownComplete();
+      if (isMounted.current) {
+        onCountdownComplete();
+      }
     }, 500);
   };
 

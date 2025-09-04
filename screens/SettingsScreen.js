@@ -5,7 +5,7 @@ import { useState } from 'react';
 const { width, height } = Dimensions.get('window');
 const isSmallScreen = height < 700; // iPhone SE and similar small devices
 
-export default function SettingsScreen({ onSettingsComplete, onBack, currentSettings }) {
+export default function SettingsScreen({ onSettingsComplete, onBack, currentSettings, playClickSound }) {
   const [timeLimit, setTimeLimit] = useState(currentSettings.timeLimit);
   const [difficulty, setDifficulty] = useState(currentSettings.difficulty);
 
@@ -17,8 +17,32 @@ export default function SettingsScreen({ onSettingsComplete, onBack, currentSett
     { key: 'ultra', label: '🟣 Ultra Hard (11+ yrs)', description: 'Up to 9999, complex problems' }
   ];
 
-  const handleStartGame = () => {
+  const handleStartGame = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
     onSettingsComplete({ timeLimit, difficulty });
+  };
+
+  const handleTimeLimitChange = async (time) => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    setTimeLimit(time);
+  };
+
+  const handleDifficultyChange = async (diffKey) => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    setDifficulty(diffKey);
+  };
+
+  const handleBack = async () => {
+    if (playClickSound) {
+      await playClickSound();
+    }
+    onBack();
   };
 
   return (
@@ -43,7 +67,7 @@ export default function SettingsScreen({ onSettingsComplete, onBack, currentSett
                       styles.optionButton,
                       timeLimit === time && styles.selectedOption
                     ]}
-                    onPress={() => setTimeLimit(time)}
+                    onPress={() => handleTimeLimitChange(time)}
                   >
                     <Text style={[
                       styles.optionText,
@@ -67,7 +91,7 @@ export default function SettingsScreen({ onSettingsComplete, onBack, currentSett
                       styles.difficultyButton,
                       difficulty === diff.key && styles.selectedDifficulty
                     ]}
-                    onPress={() => setDifficulty(diff.key)}
+                    onPress={() => handleDifficultyChange(diff.key)}
                   >
                     <Text style={[
                       styles.difficultyLabel,
@@ -89,7 +113,7 @@ export default function SettingsScreen({ onSettingsComplete, onBack, currentSett
 
           {/* Action Buttons */}
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <TouchableOpacity style={styles.backButton} onPress={handleBack}>
               <Text style={styles.backButtonText}>Back</Text>
             </TouchableOpacity>
             
