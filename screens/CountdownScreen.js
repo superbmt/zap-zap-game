@@ -15,91 +15,27 @@ export default function CountdownScreen({ onCountdownComplete }) {
   useEffect(() => {
     startCountdown();
     return () => {
-      // Cleanup sound
-      if (sound.current) {
-        // Force web behavior if we're in a browser environment
-        const isWebEnvironment = Platform.OS === 'web' || typeof window !== 'undefined';
-        
-        if (isWebEnvironment) {
-          sound.current.pause();
-          sound.current.src = '';
-          sound.current = null;
-        } else {
-          // For native platforms
-          if (sound.current.unloadAsync) {
-            sound.current.unloadAsync();
-          }
+      // Cleanup sound - only needed for native platforms
+      if (sound.current && Platform.OS !== 'web' && typeof window === 'undefined') {
+        // For native platforms only
+        if (sound.current.unloadAsync) {
+          sound.current.unloadAsync();
         }
       }
+      sound.current = null;
     };
   }, []);
 
   const startCountdown = async () => {
     console.log('🚀 NEW CountdownScreen code loaded! Platform:', Platform.OS);
     
-    // Load the sound - simple approach for web vs native
+    // Load the sound - native only, skip for web to avoid errors
     console.log('🔍 Platform detection:', Platform.OS, 'window:', typeof window !== 'undefined');
     try {
-      // Force web behavior if we're in a browser environment
-      const isWebEnvironment = Platform.OS === 'web' || typeof window !== 'undefined';
-      
-      if (isWebEnvironment) {
-        // For web development, skip audio loading to avoid 404 errors
-        // Audio will work in production builds
-        const isDevelopment = window.location.hostname === 'localhost';
-        
-        if (isDevelopment) {
-          console.log('🔇 Skipping audio in development mode');
-          sound.current = null;
-        } else {
-          // Production build paths (with hash)
-          const audioPaths = [
-            './assets/game-start.2d860af9c2665454a3f6618325314fc8.mp3',
-            '/assets/game-start.2d860af9c2665454a3f6618325314fc8.mp3',
-            'assets/game-start.2d860af9c2665454a3f6618325314fc8.mp3'
-          ];
-          
-          let audioLoaded = false;
-          for (const path of audioPaths) {
-            try {
-              console.log('🎵 Trying to load audio from:', path);
-              sound.current = new Audio(path);
-              sound.current.volume = 0.7;
-              sound.current.preload = 'auto';
-              
-              // Test if audio can load
-              await new Promise((resolve, reject) => {
-                const timeout = setTimeout(() => {
-                  reject(new Error('Audio load timeout'));
-                }, 3000);
-                
-                sound.current.addEventListener('canplaythrough', () => {
-                  clearTimeout(timeout);
-                  resolve();
-                }, { once: true });
-                
-                sound.current.addEventListener('error', (e) => {
-                  clearTimeout(timeout);
-                  reject(e);
-                }, { once: true });
-                
-                sound.current.load();
-              });
-              
-              console.log('✅ Audio loaded successfully from:', path);
-              audioLoaded = true;
-              break;
-            } catch (pathError) {
-              console.warn('❌ Failed to load audio from:', path, pathError.message || pathError);
-            }
-          }
-          
-          if (!audioLoaded) {
-            console.warn('Could not load audio from any path');
-          }
-        }
-      } else {
-        // Use expo-av for native platforms only
+      // Only load audio on native platforms, skip entirely for web
+      if (Platform.OS !== 'web' && typeof window === 'undefined') {
+        // Native platforms only
+        console.log('📱 Loading audio for native platform');
         try {
           const { Audio } = await import('expo-av');
           if (Audio && Audio.loadAsync) {
@@ -107,12 +43,17 @@ export default function CountdownScreen({ onCountdownComplete }) {
               require('../assets/game-start.mp3')
             );
             sound.current = audioSound;
+            console.log('✅ Native audio loaded successfully');
           } else {
             console.warn('expo-av not available');
           }
         } catch (importError) {
           console.warn('Failed to import expo-av:', importError);
         }
+      } else {
+        // Web platforms - skip audio entirely
+        console.log('🌐 Web platform detected - skipping audio for reliability');
+        sound.current = null;
       }
     } catch (error) {
       console.warn('Could not load sound:', error);
@@ -137,41 +78,21 @@ export default function CountdownScreen({ onCountdownComplete }) {
       // Update text
       setCurrentText(item.text);
       
-      // Play sound on "GO!"
+      // Play sound on "GO!" - native platforms only
       if (item.playSound) {
-        if (sound.current) {
+        if (sound.current && Platform.OS !== 'web' && typeof window === 'undefined') {
           try {
-            // Force web behavior if we're in a browser environment
-            const isWebEnvironment = Platform.OS === 'web' || typeof window !== 'undefined';
-            
-            if (isWebEnvironment) {
-              console.log('🔊 Playing web audio...');
-              sound.current.currentTime = 0;
-              
-              const playPromise = sound.current.play();
-              if (playPromise !== undefined) {
-                playPromise
-                  .then(() => {
-                    console.log('✅ Audio played successfully!');
-                  })
-                  .catch(error => {
-                    console.warn('❌ Audio play failed:', error.name, error.message);
-                    if (error.name === 'NotAllowedError') {
-                      console.log('🔇 Autoplay blocked by browser - user interaction required');
-                    }
-                  });
-              }
-            } else {
-              // Use expo-av for native platforms
-              if (sound.current.replayAsync) {
-                await sound.current.replayAsync();
-              }
+            console.log('🔊 Playing native audio...');
+            // Use expo-av for native platforms
+            if (sound.current.replayAsync) {
+              await sound.current.replayAsync();
+              console.log('✅ Native audio played successfully!');
             }
           } catch (error) {
             console.warn('Could not play sound:', error);
           }
         } else {
-          console.log('🔇 No audio available (development mode)');
+          console.log('🔇 No audio available (web platform - visual countdown only)');
         }
       }
       
