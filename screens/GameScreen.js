@@ -251,14 +251,22 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
   };
 
   const handleQuit = () => {
-    Alert.alert(
-      'Quit Game?',
-      'Are you sure you want to quit? Your progress will be lost.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        { text: 'Quit', onPress: onBack }
-      ]
-    );
+    // Use native Alert on mobile, browser confirm on web
+    if (Platform.OS === 'web') {
+      const confirmed = window.confirm('Are you sure you want to quit? Your progress will be lost.');
+      if (confirmed) {
+        onBack();
+      }
+    } else {
+      Alert.alert(
+        'Quit Game?',
+        'Are you sure you want to quit? Your progress will be lost.',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Quit', onPress: onBack }
+        ]
+      );
+    }
   };
 
   if (!isGameActive && timeLeft === 0) {
