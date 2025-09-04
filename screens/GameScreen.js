@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, Alert, KeyboardAvoidingView, Platform, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, ImageBackground, TextInput, Alert, KeyboardAvoidingView, Platform, Dimensions, Modal } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 
 // Get screen dimensions for responsive design
@@ -15,6 +15,7 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
   const [feedback, setFeedback] = useState('');
   const [streak, setStreak] = useState(0);
   const [bestStreak, setBestStreak] = useState(0);
+  const [showQuitModal, setShowQuitModal] = useState(false);
   const intervalRef = useRef(null);
   const textInputRef = useRef(null);
 
@@ -251,22 +252,16 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
   };
 
   const handleQuit = () => {
-    // Use native Alert on mobile, browser confirm on web
-    if (Platform.OS === 'web') {
-      const confirmed = window.confirm('Are you sure you want to quit? Your progress will be lost.');
-      if (confirmed) {
-        onBack();
-      }
-    } else {
-      Alert.alert(
-        'Quit Game?',
-        'Are you sure you want to quit? Your progress will be lost.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Quit', onPress: onBack }
-        ]
-      );
-    }
+    setShowQuitModal(true);
+  };
+
+  const handleConfirmQuit = () => {
+    setShowQuitModal(false);
+    onBack();
+  };
+
+  const handleCancelQuit = () => {
+    setShowQuitModal(false);
   };
 
   if (!isGameActive && timeLeft === 0) {
@@ -380,6 +375,39 @@ export default function GameScreen({ settings, onGameComplete, onBack }) {
         )}
       </View>
       </KeyboardAvoidingView>
+
+      {/* Quit Confirmation Modal */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={showQuitModal}
+        onRequestClose={handleCancelQuit}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Quit Game?</Text>
+            <Text style={styles.modalMessage}>
+              Are you sure you want to quit? Your progress will be lost.
+            </Text>
+            
+            <View style={styles.modalButtons}>
+              <TouchableOpacity 
+                style={styles.modalCancelButton} 
+                onPress={handleCancelQuit}
+              >
+                <Text style={styles.modalCancelText}>Cancel</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity 
+                style={styles.modalConfirmButton} 
+                onPress={handleConfirmQuit}
+              >
+                <Text style={styles.modalConfirmText}>Quit</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </ImageBackground>
   );
 }
@@ -556,5 +584,68 @@ const styles = StyleSheet.create({
     textShadowColor: 'rgba(0, 0, 0, 0.5)',
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 2,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: isSmallScreen ? 20 : 30,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
+    minWidth: isSmallScreen ? 280 : 320,
+  },
+  modalTitle: {
+    fontSize: isSmallScreen ? 20 : 24,
+    fontWeight: 'bold',
+    marginBottom: isSmallScreen ? 10 : 15,
+    color: '#333',
+    textAlign: 'center',
+  },
+  modalMessage: {
+    fontSize: isSmallScreen ? 14 : 16,
+    color: '#666',
+    textAlign: 'center',
+    marginBottom: isSmallScreen ? 20 : 25,
+    lineHeight: isSmallScreen ? 20 : 24,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: isSmallScreen ? 12 : 15,
+  },
+  modalCancelButton: {
+    backgroundColor: '#f0f0f0',
+    paddingHorizontal: isSmallScreen ? 20 : 25,
+    paddingVertical: isSmallScreen ? 10 : 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  modalCancelText: {
+    fontSize: isSmallScreen ? 14 : 16,
+    fontWeight: '600',
+    color: '#333',
+  },
+  modalConfirmButton: {
+    backgroundColor: '#FF6B9D',
+    paddingHorizontal: isSmallScreen ? 20 : 25,
+    paddingVertical: isSmallScreen ? 10 : 12,
+    borderRadius: 10,
+  },
+  modalConfirmText: {
+    fontSize: isSmallScreen ? 14 : 16,
+    fontWeight: '600',
+    color: 'white',
   },
 });

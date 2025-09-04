@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import ProfileSelectionScreen from './screens/ProfileSelectionScreen';
 import ProfileCreationScreen from './screens/ProfileCreationScreen';
 import SettingsScreen from './screens/SettingsScreen';
+import CountdownScreen from './screens/CountdownScreen';
 import GameScreen from './screens/GameScreen';
 import ResultsScreen from './screens/ResultsScreen';
 import LeaderboardScreen from './screens/LeaderboardScreen';
@@ -77,6 +78,10 @@ export default function App() {
 
   const handleSettingsComplete = (settings) => {
     setGameSettings(settings);
+    setCurrentScreen('countdown');
+  };
+
+  const handleCountdownComplete = () => {
     setCurrentScreen('game');
   };
 
@@ -159,6 +164,14 @@ export default function App() {
           </View>
         )}
       </View>
+    );
+  }
+
+  if (currentScreen === 'countdown') {
+    return (
+      <CountdownScreen 
+        onCountdownComplete={handleCountdownComplete}
+      />
     );
   }
 
