@@ -119,44 +119,31 @@ export default function App() {
     try {
       if (Platform.OS === 'web') {
         console.log('🌐 Web platform detected');
-        // Web implementation using HTML5 Audio
-        const audio = new Audio();
-        audio.loop = true;
-        audio.volume = 0.3; // Set to 30% volume
-        
-        // Try different paths for web
-        const musicPaths = [
-          'http://localhost:8082/assets/game-music-song.mp3', // Development path
-          '/assets/game-music-song.mp3', // Production path
-          '/assets/assets/game-music-song.mp3' // Alternative production path
-        ];
-        
-        let loaded = false;
-        for (const path of musicPaths) {
-          try {
-            console.log(`🔍 Trying to load music from: ${path}`);
-            audio.src = path;
-            await new Promise((resolve, reject) => {
-              const timeout = setTimeout(() => reject(new Error('Timeout')), 5000);
-              audio.addEventListener('canplaythrough', () => {
-                clearTimeout(timeout);
-                resolve();
-              }, { once: true });
-              audio.addEventListener('error', (e) => {
-                clearTimeout(timeout);
-                reject(e);
-              }, { once: true });
-              audio.load();
-            });
-            loaded = true;
-            console.log(`✅ Successfully loaded music from: ${path}`);
-            break;
-          } catch (error) {
-            console.log(`❌ Failed to load music from ${path}:`, error.message);
-          }
-        }
-        
-        if (loaded) {
+        try {
+          // Web implementation using HTML5 Audio
+          const audio = new Audio();
+          audio.loop = true;
+          audio.volume = 0.3; // Set to 30% volume
+          
+          // Use bundled asset path for web
+          console.log(`🔍 Loading music from bundled asset`);
+          audio.src = require('./assets/game-music-song.mp3');
+          
+          await new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject(new Error('Load timeout')), 5000);
+            audio.addEventListener('canplaythrough', () => {
+              clearTimeout(timeout);
+              resolve();
+            }, { once: true });
+            audio.addEventListener('error', (e) => {
+              clearTimeout(timeout);
+              reject(new Error(`Load error: ${e.message || 'Unknown error'}`));
+            }, { once: true });
+            audio.load();
+          });
+          
+          console.log(`✅ Background music loaded from bundled asset`);
+          
           backgroundMusic.current = audio;
           setMusicReady(true);
           console.log('✅ Background music ready (web)');
@@ -177,8 +164,8 @@ export default function App() {
             document.removeEventListener('click', startMusic);
           };
           document.addEventListener('click', startMusic);
-        } else {
-          console.warn('❌ Could not load music from any path');
+        } catch (webError) {
+          console.warn('❌ Web audio loading failed:', webError);
           // Show toggle anyway for debugging
           setMusicReady(true);
         }
@@ -257,44 +244,32 @@ export default function App() {
   const loadSound = async (soundName, filename, volume = 0.5) => {
     try {
       if (Platform.OS === 'web') {
-        // Web implementation using HTML5 Audio
+        // Web implementation using HTML5 Audio with bundled assets
+        const assetSource = soundAssets[filename];
+        if (!assetSource) {
+          console.warn(`❌ Sound asset not found: ${filename}`);
+          return;
+        }
+        
         const audio = new Audio();
         audio.volume = volume;
+        audio.src = assetSource; // Use the bundled asset path from require()
         
-        const soundPaths = [
-          `http://localhost:8082/assets/${filename}`, // Development path
-          `/assets/${filename}`, // Production path
-          `/assets/assets/${filename}` // Alternative production path
-        ];
+        await new Promise((resolve, reject) => {
+          const timeout = setTimeout(() => reject(new Error('Load timeout')), 5000);
+          audio.addEventListener('canplaythrough', () => {
+            clearTimeout(timeout);
+            resolve();
+          }, { once: true });
+          audio.addEventListener('error', (e) => {
+            clearTimeout(timeout);
+            reject(new Error(`Load error: ${e.message || 'Unknown error'}`));
+          }, { once: true });
+          audio.load();
+        });
         
-        let loaded = false;
-        for (const path of soundPaths) {
-          try {
-            audio.src = path;
-            await new Promise((resolve, reject) => {
-              const timeout = setTimeout(() => reject(new Error('Timeout')), 3000);
-              audio.addEventListener('canplaythrough', () => {
-                clearTimeout(timeout);
-                resolve();
-              }, { once: true });
-              audio.addEventListener('error', (e) => {
-                clearTimeout(timeout);
-                reject(e);
-              }, { once: true });
-              audio.load();
-            });
-            loaded = true;
-            console.log(`✅ ${soundName} sound loaded from: ${path}`);
-            break;
-          } catch (error) {
-            console.log(`❌ Failed to load ${soundName} sound from ${path}`);
-          }
-        }
-        
-        if (loaded) {
-          sounds.current[soundName] = audio;
-          console.log(`✅ ${soundName} sound ready (web)`);
-        }
+        sounds.current[soundName] = audio;
+        console.log(`✅ ${soundName} sound loaded (web) from bundled asset`)
       } else {
         // Native implementation using expo-av
         try {
