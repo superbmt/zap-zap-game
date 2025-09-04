@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, ImageBackground, Animated, Dimensions, Platform } from 'react-native';
+import { StyleSheet, Text, View, ImageBackground, Animated, Dimensions } from 'react-native';
 import { useState, useEffect, useRef } from 'react';
 
 // Get screen dimensions for responsive design
@@ -10,62 +10,19 @@ export default function CountdownScreen({ onCountdownComplete }) {
   const [isComplete, setIsComplete] = useState(false);
   const scaleAnim = useRef(new Animated.Value(0)).current;
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const sound = useRef(null);
 
   useEffect(() => {
     startCountdown();
-    return () => {
-      // Cleanup sound - only needed for native platforms
-      if (sound.current && Platform.OS !== 'web' && typeof window === 'undefined') {
-        // For native platforms only
-        if (sound.current.unloadAsync) {
-          sound.current.unloadAsync();
-        }
-      }
-      sound.current = null;
-    };
   }, []);
 
   const startCountdown = async () => {
-    console.log('🚀 NEW CountdownScreen code loaded! Platform:', Platform.OS);
-    
-    // Load the sound - native only, skip for web to avoid errors
-    console.log('🔍 Platform detection:', Platform.OS, 'window:', typeof window !== 'undefined');
-    try {
-      // Only load audio on native platforms, skip entirely for web
-      if (Platform.OS !== 'web' && typeof window === 'undefined') {
-        // Native platforms only
-        console.log('📱 Loading audio for native platform');
-        try {
-          const { Audio } = await import('expo-av');
-          if (Audio && Audio.loadAsync) {
-            const { sound: audioSound } = await Audio.loadAsync(
-              require('../assets/game-start.mp3')
-            );
-            sound.current = audioSound;
-            console.log('✅ Native audio loaded successfully');
-          } else {
-            console.warn('expo-av not available');
-          }
-        } catch (importError) {
-          console.warn('Failed to import expo-av:', importError);
-        }
-      } else {
-        // Web platforms - skip audio entirely
-        console.log('🌐 Web platform detected - skipping audio for reliability');
-        sound.current = null;
-      }
-    } catch (error) {
-      console.warn('Could not load sound:', error);
-    }
-
     // Animation sequence
     const sequence = [
       { text: 'Get Ready!', duration: 1500 },
       { text: '3', duration: 800 },
       { text: '2', duration: 800 },
       { text: '1', duration: 800 },
-      { text: 'GO!', duration: 1000, playSound: true }
+      { text: 'GO!', duration: 1000 }
     ];
 
     for (let i = 0; i < sequence.length; i++) {
@@ -77,24 +34,6 @@ export default function CountdownScreen({ onCountdownComplete }) {
       
       // Update text
       setCurrentText(item.text);
-      
-      // Play sound on "GO!" - native platforms only
-      if (item.playSound) {
-        if (sound.current && Platform.OS !== 'web' && typeof window === 'undefined') {
-          try {
-            console.log('🔊 Playing native audio...');
-            // Use expo-av for native platforms
-            if (sound.current.replayAsync) {
-              await sound.current.replayAsync();
-              console.log('✅ Native audio played successfully!');
-            }
-          } catch (error) {
-            console.warn('Could not play sound:', error);
-          }
-        } else {
-          console.log('🔇 No audio available (web platform - visual countdown only)');
-        }
-      }
       
       // Animate in
       Animated.parallel([
