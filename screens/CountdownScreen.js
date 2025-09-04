@@ -17,7 +17,10 @@ export default function CountdownScreen({ onCountdownComplete }) {
     return () => {
       // Cleanup sound
       if (sound.current) {
-        if (Platform.OS === 'web') {
+        // Force web behavior if we're in a browser environment
+        const isWebEnvironment = Platform.OS === 'web' || typeof window !== 'undefined';
+        
+        if (isWebEnvironment) {
           sound.current.pause();
           sound.current.src = '';
           sound.current = null;
@@ -35,8 +38,12 @@ export default function CountdownScreen({ onCountdownComplete }) {
     console.log('🚀 NEW CountdownScreen code loaded! Platform:', Platform.OS);
     
     // Load the sound - simple approach for web vs native
+    console.log('🔍 Platform detection:', Platform.OS, 'window:', typeof window !== 'undefined');
     try {
-      if (Platform.OS === 'web') {
+      // Force web behavior if we're in a browser environment
+      const isWebEnvironment = Platform.OS === 'web' || typeof window !== 'undefined';
+      
+      if (isWebEnvironment) {
         // For web development, skip audio loading to avoid 404 errors
         // Audio will work in production builds
         const isDevelopment = window.location.hostname === 'localhost';
@@ -92,12 +99,20 @@ export default function CountdownScreen({ onCountdownComplete }) {
           }
         }
       } else {
-        // Use expo-av for native platforms only - dynamic import
-        const { Audio } = await import('expo-av');
-        const { sound: audioSound } = await Audio.loadAsync(
-          require('../assets/game-start.mp3')
-        );
-        sound.current = audioSound;
+        // Use expo-av for native platforms only
+        try {
+          const { Audio } = await import('expo-av');
+          if (Audio && Audio.loadAsync) {
+            const { sound: audioSound } = await Audio.loadAsync(
+              require('../assets/game-start.mp3')
+            );
+            sound.current = audioSound;
+          } else {
+            console.warn('expo-av not available');
+          }
+        } catch (importError) {
+          console.warn('Failed to import expo-av:', importError);
+        }
       }
     } catch (error) {
       console.warn('Could not load sound:', error);
@@ -126,7 +141,10 @@ export default function CountdownScreen({ onCountdownComplete }) {
       if (item.playSound) {
         if (sound.current) {
           try {
-            if (Platform.OS === 'web') {
+            // Force web behavior if we're in a browser environment
+            const isWebEnvironment = Platform.OS === 'web' || typeof window !== 'undefined';
+            
+            if (isWebEnvironment) {
               console.log('🔊 Playing web audio...');
               sound.current.currentTime = 0;
               
